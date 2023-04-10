@@ -20,7 +20,7 @@ function App() {
       .get(currentPageUrl, {
         cancelToken: new axios.CancelToken((c) => (cancel = c)),
         params: {
-          limit: 16,
+          limit: 8,
           offset: 0,
           q: searchTerm,
         },
@@ -31,20 +31,32 @@ function App() {
         const results = res.data.results.map((p) => {
           return {
             name: p.name,
-            url: p.url
-          }
+            url: p.url,
+            height: null,
+            weight: null,
+            abilities: [],
+            defense: null,
+            attributes: [],
+            image: null,
+          };
         });
         setPokemon(results);
-        // Fetch images for each pokemon
+        // Fetch details for each pokemon
         results.forEach((p, index) => {
           axios
             .get(p.url)
             .then((res) => {
               const updatedPokemon = {
                 name: p.name,
-                image: res.data.sprites.front_default
+                url: p.url,
+                height: res.data.height,
+                weight: res.data.weight,
+                abilities: res.data.abilities.map((a) => a.ability.name),
+                defense: res.data.stats.find((s) => s.stat.name === 'defense').base_stat,
+                attributes: res.data.types.map((t) => t.type.name),
+                image: res.data.sprites.front_default,
               };
-              setPokemon(prevState => {
+              setPokemon((prevState) => {
                 const newPokemon = [...prevState];
                 newPokemon[index] = updatedPokemon;
                 return newPokemon;
@@ -58,6 +70,7 @@ function App() {
   
     return () => cancel();
   }, [currentPageUrl, searchTerm]);
+  
   
 
   useEffect(() => {
